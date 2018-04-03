@@ -816,24 +816,39 @@ class Select extends React.Component {
 		}
 		let onClick = this.props.onValueClick ? this.handleValueClick : null;
 		if (this.props.multi) {
-			return valueArray.map((value, i) => {
+			if (valueArray.length > 0) {
+				return valueArray.map((value, i) => {
+					return (
+						<ValueComponent
+							disabled={this.props.disabled || value.clearableValue === false}
+							id={`${this._instancePrefix}-value-${i}`}
+							instancePrefix={this._instancePrefix}
+							key={`value-${i}-${value[this.props.valueKey]}`}
+							onClick={onClick}
+							onRemove={this.removeValue}
+							placeholder={this.props.placeholder}
+							value={value}
+						>
+							{renderLabel(value, i)}
+							<span className="Select-aria-only">&nbsp;</span>
+						</ValueComponent>
+					);
+				});
+			} else {
 				return (
 					<ValueComponent
-						disabled={this.props.disabled || value.clearableValue === false}
-						id={`${this._instancePrefix}-value-${i}`}
+						disabled={this.props.disabled}
+						id={`${this._instancePrefix}-value-item`}
 						instancePrefix={this._instancePrefix}
-						key={`value-${i}-${value[this.props.valueKey]}`}
 						onClick={onClick}
-						onRemove={this.removeValue}
 						placeholder={this.props.placeholder}
-						value={value}
+						value={valueArray[0]}
 					>
-						{renderLabel(value, i)}
-						<span className="Select-aria-only">&nbsp;</span>
+						{renderLabel(valueArray[0])}
 					</ValueComponent>
 				);
-			});
-		} else if (shouldShowValue(this.state, this.props)) {
+			}
+		} else {
 			if (isOpen) onClick = null;
 			return (
 				<ValueComponent
@@ -1043,7 +1058,6 @@ class Select extends React.Component {
 	}
 
 	renderHiddenField (valueArray) {
-		if (!this.props.name) return;
 		if (this.props.joinValues) {
 			let value = valueArray.map(i => stringifyValue(i[this.props.valueKey])).join(this.props.delimiter);
 			return (
@@ -1056,16 +1070,26 @@ class Select extends React.Component {
 				/>
 			);
 		}
-		return valueArray.map((item, index) => (
+		if (valueArray.length > 0) {
+			return valueArray.map((item, index) => (
+				<input
+					disabled={this.props.disabled}
+					key={`hidden.${index}`}
+					name={this.props.name}
+					ref={`value${index}`}
+					type="hidden"
+					value={stringifyValue(item[this.props.valueKey])}
+				/>
+			));
+		}
+		return (
 			<input
 				disabled={this.props.disabled}
-				key={`hidden.${index}`}
 				name={this.props.name}
-				ref={`value${index}`}
 				type="hidden"
-				value={stringifyValue(item[this.props.valueKey])}
+				value=""
 			/>
-		));
+		);
 	}
 
 	getFocusableOptionIndex (selectedOption) {

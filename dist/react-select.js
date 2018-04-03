@@ -655,22 +655,6 @@ var stringOrNumber = PropTypes.oneOfType([PropTypes.string, PropTypes.number]);
 
 var instanceId = 1;
 
-var shouldShowValue = function shouldShowValue(state, props) {
-	var inputValue = state.inputValue,
-	    isPseudoFocused = state.isPseudoFocused,
-	    isFocused = state.isFocused;
-	var onSelectResetsInput = props.onSelectResetsInput;
-
-
-	if (!inputValue) return true;
-
-	if (!onSelectResetsInput) {
-		return !(!isFocused && isPseudoFocused || isFocused && !isPseudoFocused);
-	}
-
-	return false;
-};
-
 var shouldShowPlaceholder = function shouldShowPlaceholder(state, props, isOpen) {
 	var inputValue = state.inputValue,
 	    isPseudoFocused = state.isPseudoFocused,
@@ -1522,28 +1506,43 @@ var Select$1 = function (_React$Component) {
 			}
 			var onClick = this.props.onValueClick ? this.handleValueClick : null;
 			if (this.props.multi) {
-				return valueArray.map(function (value, i) {
+				if (valueArray.length > 0) {
+					return valueArray.map(function (value, i) {
+						return React__default.createElement(
+							ValueComponent,
+							{
+								disabled: _this5.props.disabled || value.clearableValue === false,
+								id: _this5._instancePrefix + '-value-' + i,
+								instancePrefix: _this5._instancePrefix,
+								key: 'value-' + i + '-' + value[_this5.props.valueKey],
+								onClick: onClick,
+								onRemove: _this5.removeValue,
+								placeholder: _this5.props.placeholder,
+								value: value
+							},
+							renderLabel(value, i),
+							React__default.createElement(
+								'span',
+								{ className: 'Select-aria-only' },
+								'\xA0'
+							)
+						);
+					});
+				} else {
 					return React__default.createElement(
 						ValueComponent,
 						{
-							disabled: _this5.props.disabled || value.clearableValue === false,
-							id: _this5._instancePrefix + '-value-' + i,
-							instancePrefix: _this5._instancePrefix,
-							key: 'value-' + i + '-' + value[_this5.props.valueKey],
+							disabled: this.props.disabled,
+							id: this._instancePrefix + '-value-item',
+							instancePrefix: this._instancePrefix,
 							onClick: onClick,
-							onRemove: _this5.removeValue,
-							placeholder: _this5.props.placeholder,
-							value: value
+							placeholder: this.props.placeholder,
+							value: valueArray[0]
 						},
-						renderLabel(value, i),
-						React__default.createElement(
-							'span',
-							{ className: 'Select-aria-only' },
-							'\xA0'
-						)
+						renderLabel(valueArray[0])
 					);
-				});
-			} else if (shouldShowValue(this.state, this.props)) {
+				}
+			} else {
 				if (isOpen) onClick = null;
 				return React__default.createElement(
 					ValueComponent,
@@ -1745,7 +1744,6 @@ var Select$1 = function (_React$Component) {
 		value: function renderHiddenField(valueArray) {
 			var _this7 = this;
 
-			if (!this.props.name) return;
 			if (this.props.joinValues) {
 				var value = valueArray.map(function (i) {
 					return stringifyValue(i[_this7.props.valueKey]);
@@ -1760,15 +1758,23 @@ var Select$1 = function (_React$Component) {
 					value: value
 				});
 			}
-			return valueArray.map(function (item, index) {
-				return React__default.createElement('input', {
-					disabled: _this7.props.disabled,
-					key: 'hidden.' + index,
-					name: _this7.props.name,
-					ref: 'value' + index,
-					type: 'hidden',
-					value: stringifyValue(item[_this7.props.valueKey])
+			if (valueArray.length > 0) {
+				return valueArray.map(function (item, index) {
+					return React__default.createElement('input', {
+						disabled: _this7.props.disabled,
+						key: 'hidden.' + index,
+						name: _this7.props.name,
+						ref: 'value' + index,
+						type: 'hidden',
+						value: stringifyValue(item[_this7.props.valueKey])
+					});
 				});
+			}
+			return React__default.createElement('input', {
+				disabled: this.props.disabled,
+				name: this.props.name,
+				type: 'hidden',
+				value: ''
 			});
 		}
 	}, {
